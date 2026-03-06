@@ -1,11 +1,18 @@
-import React from 'react';
+'use client';
+
+import React, { useMemo } from 'react';
 import Link from 'next/link';
 import { TextShapeLine } from '@/svg';
 import BlogItem from './blog-item';
-import { getRecentBlogs } from '@/lib/public-content-api';
 
-export default function BlogArea({ blogs = [] }) {
-  const recentBlogs = getRecentBlogs(blogs, 3);
+export default function BlogArea({ blogs: inputBlogs = [] }) {
+  const blogs = useMemo(
+    () =>
+      [...(Array.isArray(inputBlogs) ? inputBlogs : [])]
+        .sort((a, b) => new Date(b?.createdAt || 0) - new Date(a?.createdAt || 0))
+        .slice(0, 3),
+    [inputBlogs]
+  );
 
   return (
     <section className="tp-blog-area tp-blog-area--compact pt-60 pb-60" aria-labelledby="blog-heading">
@@ -25,14 +32,17 @@ export default function BlogArea({ blogs = [] }) {
         </div>
 
         <div className="row tp-blog-grid">
-          {recentBlogs.length === 0 && (
+          {blogs.length === 0 && (
             <div className="col-12 text-center">
               <p className="tp-blog-state">No posts yet.</p>
             </div>
           )}
 
-          {recentBlogs.map((blog, index) => (
-            <div key={blog._id || blog.id || `blog-${index}`} className="col-xl-4 col-lg-4 col-md-6 tp-blog-col">
+          {blogs.map((blog, index) => (
+            <div
+              key={blog?._id || blog?.id || `blog-${index}`}
+              className="col-xl-4 col-lg-4 col-md-6 tp-blog-col"
+            >
               <BlogItem blog={blog} />
             </div>
           ))}
@@ -77,10 +87,6 @@ export default function BlogArea({ blogs = [] }) {
           color: var(--tp-text-2);
           font-size: 14px;
           line-height: 1.6;
-        }
-        .tp-blog-state--err {
-          color: #dc2626;
-          font-weight: 600;
         }
 
         .tp-btn.tp-btn-blog-discover {
